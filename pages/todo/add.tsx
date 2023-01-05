@@ -1,50 +1,41 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useForm, SubmitHandler, set } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { TTodoFormInputs } from "../types/todo.types";
-import axiosPublic from '../utils/axios';
 import useStore from '../store';
 
-
-const SingleTodo = () => {
-    
-    const router = useRouter();
+const AddTodo = () => {
     const store = useStore();
-    const { id } = router.query;
-    
-    const { register, setValue, formState: { errors }, handleSubmit } = useForm<TTodoFormInputs>();
-    
+    const router = useRouter();
+
+    const initVal = {
+        title:'',
+        description:''
+    };
+
+    const { register, formState, reset, formState: { errors }, handleSubmit } = useForm<TTodoFormInputs>({defaultValues: initVal});
+
     useEffect(() => {
-        if(!id) return;
-        
-        const fetchTodo = async() => {
-            try {
-                const { data } = await axiosPublic.get('/todos/' + id);
-                store.viewTodo(data);
-                setValue("title", data.title);
-                setValue("description", data.description);
-                setValue("status", data.status);
-            } catch(e) {    
-                console.log(e); 
-            }
+
+        if (formState.isSubmitSuccessful) {
+            reset({ title: '', description:'' });
         }
-
-        fetchTodo();
-    }, [id]);
-
+        
+    }, [formState, reset]);
+    
 
 
     const onSubmit: SubmitHandler<TTodoFormInputs> = async(formVal) => {
         /**
          * If you want to add other validation place here
         */
-        store.updateTodo(id!.toString(), formVal, router);
+        store.addTodo(formVal, router);
     }
-
+    
     return ( 
         <div className="container mx-auto flex flex-col items-center mt-32">
             <div className="block max-w-sm w-3/4 p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700">
-                <h2 className="font-semibold">Update Todo</h2>
+                <h2 className="font-semibold">Add Todo</h2>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-3">
                         <label htmlFor="title" className="form-label inline-block mb-2 text-gray-600 text-sm">Todo:</label>
@@ -67,18 +58,6 @@ const SingleTodo = () => {
                         />
                         { errors.description && <span className="text-sm text-red-500">Description is required</span> }
                     </div>
-                    <div className="mb-2">
-                    <div className="flex items-center">
-                        <input 
-                        id="status-checkbox" 
-                        type="checkbox" 
-                        value="" 
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" 
-                        {...register("status")}
-                        />
-                        <label htmlFor="status-checkbox" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Completed</label>
-                    </div>
-                    </div>
                     <div className="mb-3">
                         <button
                         type="submit"
@@ -93,4 +72,4 @@ const SingleTodo = () => {
     );
 }
  
-export default SingleTodo;
+export default AddTodo;

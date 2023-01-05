@@ -1,5 +1,5 @@
 import create from 'zustand';
-import { TodoStore, TTodos } from '../types/todo.types';
+import { TodoStore, TTodos, TTodoFormInputs } from '../types/todo.types';
 import axiosPublic from '../utils/axios';
 
 const useStore = create<TodoStore>(
@@ -44,17 +44,36 @@ const useStore = create<TodoStore>(
             } 
         },
 
-        viewTodo: async(id: string) => {
-            try{
-                set({ loading: true });
-                const { data } = await axiosPublic.get('/todos/'+id);
-                set((state) => ({
-                    ...state,
-                    todo: data,
-                    loading: false
-                }))
-            }catch(e) {
+        viewTodo: async(data: any) => {
+            set((state) => ({
+                ...state,
+                todo:data
+            }))
+        },
 
+        addTodo: async(formData: TTodoFormInputs, router: any) => {
+            try {
+                set({ loading: true });
+                const { data } = await axiosPublic.post('/todos', formData);
+                if(data.status) {
+                    router.push('/todo')
+                }
+                set({ loading: false });
+            }catch(e) {
+                console.log(e)
+            }
+        },
+
+        updateTodo: async(id: string, formData: TTodoFormInputs, router: any) => {
+            try {
+                set({ loading: true });
+                const { data } = await axiosPublic.patch('/todos/'+id, formData);
+                if(data.success) {
+                    router.push('/todo')
+                }
+                set({ loading: false });
+            }catch(e) {
+                console.log(e)
             }
         }
 
